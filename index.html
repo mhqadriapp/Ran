@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ran Image Generator</title>
+    
+    <!-- PWA (Progressive Web App) के लिए Meta Tags -->
+    <meta name="theme-color" content="#6a11cb">
+    <meta name="description" content="Ran Image Generator - एक शक्तिशाली इमेज सर्च टूल।">
+    
+    <!-- Manifest फ़ाइल को लिंक करना -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple डिवाइस के लिए आइकॉन -->
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+
+    <style>
+        /* --- पूरा CSS कोड यहाँ है --- */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --secondary-color: #ff6b6b;
+            --bg-color: #f0f2f5;
+            --font-color: #1c1e21;
+            --light-color: #ffffff;
+            --shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 15px; }
+
+        .header { background: var(--primary-gradient); color: var(--light-color); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.8rem; font-weight: bold; }
+        .menu-toggle { font-size: 2rem; background: none; border: none; color: white; cursor: pointer; }
+        
+        .side-nav { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--light-color); box-shadow: var(--shadow); transition: left 0.3s ease-in-out; z-index: 1001; padding-top: 60px; }
+        .side-nav.active { left: 0; }
+        .side-nav ul { list-style: none; }
+        .side-nav ul li a { display: flex; align-items: center; gap: 15px; padding: 15px 25px; text-decoration: none; color: var(--font-color); font-size: 1.1rem; border-bottom: 1px solid #eee; }
+        .side-nav ul li a:hover { background-color: #f0f2f5; }
+        .close-nav { position: absolute; top: 15px; right: 25px; font-size: 2rem; color: #555; cursor: pointer; }
+
+        main { padding: 2rem 0; }
+
+        .search-container { background: var(--light-color); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 2rem; }
+        .main-search-form { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .search-box { flex: 1 1 200px; padding: 12px; font-size: 1rem; border: 2px solid transparent; border-radius: 8px; background-color: #f0f2f5; transition: border-color 0.3s; }
+        .search-box:focus { outline: none; border-color: #6a11cb; }
+        .search-button { flex: 1 1 auto; padding: 12px 20px; font-size: 1rem; background-image: var(--primary-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+        .clear-button { flex: 1 1 auto; padding: 12px 20px; font-size: 1rem; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
+        
+        .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .filters select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; background-color: #f0f2f5; }
+        .filters select:disabled { background-color: #e9ecef; opacity: 0.7; }
+
+        #home-placeholder { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 50vh; text-align: center; color: #888; }
+        #home-placeholder svg { width: 80px; height: 80px; margin-bottom: 20px; opacity: 0.5; }
+        #home-placeholder h2 { font-size: 1.5rem; }
+
+        .image-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .image-card { 
+            background-color: white; 
+            border-radius: 12px; 
+            box-shadow: var(--shadow); 
+            overflow: hidden; 
+            position: relative;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .image-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+        }
+        .image-card img { 
+            width: 100%; 
+            height: 250px; 
+            object-fit: cover; 
+            display: block; 
+        }
+
+        .download-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background-color: rgba(22, 22, 22, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .image-card:hover .download-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #load-more { display: none; margin: 30px auto; padding: 12px 30px; font-size: 1rem; background-color: var(--font-color); color: white; border: none; border-radius: 25px; cursor: pointer; box-shadow: var(--shadow); }
+        .message { text-align: center; font-size: 1.2rem; color: #666; padding: 2rem 0; }
+        
+        .footer { text-align: center; padding: 1rem 0; background: var(--primary-gradient); color: white; }
+        
+        @media (max-width: 768px) {
+            body { padding-top: 65px; padding-bottom: 50px; }
+            .header { position: fixed; top: 0; width: 100%; }
+            .footer { position: fixed; bottom: 0; width: 100%; padding: 15px 0; }
+            main { padding: 1rem 0; }
+        }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); }
+        .modal-content h2 { margin-bottom: 20px; }
+        .modal-section { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .modal-section h3 { margin-top: 0; margin-bottom: 15px; }
+        .input-group { margin-bottom: 15px; }
+        .modal-content label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .modal-content input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+        .modal-content button { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        .save-pexels-btn { background-color: #007aff; }
+        .save-google-btn { background-color: #34c759; }
+        .status-text { font-size: 0.8rem; color: #34c759; margin-top: 5px; height: 1em; }
+    </style>
+</head>
+<body>
+
+    <header class="header"><div class="container navbar"><div class="logo">Ran Image Generator</div><button class="menu-toggle" id="menu-toggle">☰</button></div></header>
+    <nav class="side-nav" id="side-nav"><div class="close-nav" id="close-nav">&times;</div><ul><li><a href="#">होम</a></li><li><a href="#">लोकप्रिय</a></li><li><a href="#">हमारे बारे में</a></li><li><a href="#" id="settings-btn">सेटिंग्स (API Keys)</a></li></ul></nav>
+    <main class="container">
+        <section class="search-container">
+            <form id="search-form" class="main-search-form"><input type="text" id="search-box" class="search-box" placeholder="यहाँ चित्र खोजें..." required><button type="submit" class="search-button">खोजें</button><button type="button" id="clear-btn" class="clear-button">साफ़ करें</button></form>
+            <div class="filters">
+                <select id="source-select"><option value="google">स्रोत: Google</option><option value="pexels">स्रोत: Pexels</option></select>
+                <select id="orientation-select"><option value="">कोई भी ओरिएंटेशन</option><option value="landscape">लैंडस्केप (16:9)</option><option value="portrait">पोर्ट्रेट (9:16)</option><option value="square">स्क्वायर (1:1)</option></select>
+                <select id="google-size-select"><option value="">कोई भी आकार</option><option value="large">बड़ा</option><option value="medium">मध्यम</option><option value="small">छोटा</option><option value="icon">आइकन</option></select>
+                <select id="color-select" class="google-filter"><option value="">कोई भी रंग</option><option value="color">रंगीन</option><option value="gray">ब्लैक & व्हाइट</option></select>
+                <select id="type-select" class="google-filter"><option value="">किसी भी प्रकार का</option><option value="photo">फोटो</option><option value="clipart">क्लिपआर्ट</option><option value="lineart">लाइनआर्ट</option></select>
+            </div>
+        </section>
+
+        <div id="home-placeholder"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.92,7.62A1,1,0,0,0,21,7H3a1,1,0,0,0-.92.62,1,1,0,0,0,.21,1.09l5.45,5.45A1,1,0,0,1,8,15.59V19a1,1,0,0,0,1,1H15a1,1,0,0,0,1-1V15.59a1,1,0,0,1,.29-.71l5.45-5.45A1,1,0,0,0,21.92,7.62ZM15.29,14.88a3,3,0,0,0-.87,2.12V18H9.58V17a3,3,0,0,0-.87-2.12L4.41,10H19.59ZM12,6a3,3,0,1,0-3-3A3,3,0,0,0,12,6Z"/></svg><h2>Ran Image Generator</h2><p>खोज शुरू करने के लिए ऊपर कुछ टाइप करें।</p></div>
+        <section id="image-container" class="image-container"></section>
+        <div id="message" class="message"></div>
+        <button id="load-more">और लोड करें</button>
+    </main>
+    <footer class="footer"><p>&copy; 2023 Ran Image Generator</p></footer>
+    
+    <div class="modal-overlay" id="api-modal"><div class="modal-content"><h2>API कुंजी सेटिंग्स</h2><div class="modal-section"><h3>Pexels Settings</h3><div class="input-group"><label for="pexels-key">Pexels API Key</label><input type="password" id="pexels-key" placeholder="अपना Pexels API Key डालें"></div><button id="save-pexels-btn" class="save-pexels-btn">Pexels कुंजी सहेजें</button><p id="pexels-status" class="status-text"></p></div><div class="modal-section"><h3>Google Settings</h3><div class="input-group"><label for="google-key">Google API Key</label><input type="password" id="google-key" placeholder="अपना Google API Key डालें"></div><div class="input-group"><label for="google-cx">Google Search Engine ID (CX)</label><input type="password" id="google-cx" placeholder="अपना Google CX ID डालें"></div><button id="save-google-btn" class="save-google-btn">Google कुंजियाँ सहेजें</button><p id="google-status" class="status-text"></p></div></div></div>
+
+<script>
+    /* --- पूरा JavaScript कोड यहाँ है --- */
+    document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
+        const form = document.getElementById('search-form');
+        const searchBox = document.getElementById('search-box');
+        const clearBtn = document.getElementById('clear-btn');
+        const imageContainer = document.getElementById('image-container');
+        const loadMoreBtn = document.getElementById('load-more');
+        const messageDiv = document.getElementById('message');
+        const sourceSelect = document.getElementById('source-select');
+        const orientationSelect = document.getElementById('orientation-select');
+        const googleSizeSelect = document.getElementById('google-size-select');
+        const colorSelect = document.getElementById('color-select');
+        const typeSelect = document.getElementById('type-select');
+        const homePlaceholder = document.getElementById('home-placeholder');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sideNav = document.getElementById('side-nav');
+        const closeNav = document.getElementById('close-nav');
+        const settingsBtn = document.getElementById('settings-btn');
+        const apiModal = document.getElementById('api-modal');
+        const savePexelsBtn = document.getElementById('save-pexels-btn');
+        const saveGoogleBtn = document.getElementById('save-google-btn');
+        const pexelsKeyInput = document.getElementById('pexels-key');
+        const googleKeyInput = document.getElementById('google-key');
+        const googleCxInput = document.getElementById('google-cx');
+        const pexelsStatus = document.getElementById('pexels-status');
+        const googleStatus = document.getElementById('google-status');
+
+        // App State
+        let currentQuery = '';
+        let currentPage = 1;
+        let apiKeys = { pexels: '', google: '', googleCx: '' };
+
+        function loadApiKeys() {
+            apiKeys.pexels = localStorage.getItem('pexelsApiKey') || '';
+            apiKeys.google = localStorage.getItem('googleApiKey') || '';
+            apiKeys.googleCx = localStorage.getItem('googleCxId') || '';
+            pexelsKeyInput.value = apiKeys.pexels;
+            googleKeyInput.value = apiKeys.google;
+            googleCxInput.value = apiKeys.googleCx;
+            updateSourceOptions();
+            if (!apiKeys.pexels && !apiKeys.google && !apiKeys.googleCx) {
+                setTimeout(() => apiModal.classList.add('active'), 500);
+            }
+        }
+
+        function updateSourceOptions() {
+            const pexelsOption = sourceSelect.querySelector('option[value="pexels"]');
+            const googleOption = sourceSelect.querySelector('option[value="google"]');
+            pexelsOption.disabled = !apiKeys.pexels;
+            googleOption.disabled = !apiKeys.google || !apiKeys.googleCx;
+            if (sourceSelect.options[sourceSelect.selectedIndex].disabled) {
+                sourceSelect.value = !googleOption.disabled ? 'google' : 'pexels';
+            }
+            sourceSelect.dispatchEvent(new Event('change'));
+        }
+
+        savePexelsBtn.addEventListener('click', () => {
+            const key = pexelsKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('pexelsApiKey', key);
+                apiKeys.pexels = key;
+                pexelsStatus.textContent = 'Pexels कुंजी सहेजी गई!';
+                setTimeout(() => pexelsStatus.textContent = '', 2000);
+                updateSourceOptions();
+            } else { alert('कृपया Pexels API Key डालें।'); }
+        });
+
+        saveGoogleBtn.addEventListener('click', () => {
+            const apiKey = googleKeyInput.value.trim();
+            const cxId = googleCxInput.value.trim();
+            if (apiKey && cxId) {
+                localStorage.setItem('googleApiKey', apiKey);
+                localStorage.setItem('googleCxId', cxId);
+                apiKeys.google = apiKey;
+                apiKeys.googleCx = cxId;
+                googleStatus.textContent = 'Google कुंजियाँ सहेजी गईं!';
+                setTimeout(() => googleStatus.textContent = '', 2000);
+                updateSourceOptions();
+            } else { alert('कृपया Google API Key और CX ID दोनों डालें।'); }
+        });
+        
+        menuToggle.addEventListener('click', () => sideNav.classList.add('active'));
+        closeNav.addEventListener('click', () => sideNav.classList.remove('active'));
+        settingsBtn.addEventListener('click', (e) => {
+            e.preventDefault(); apiModal.classList.add('active'); sideNav.classList.remove('active');
+        });
+        apiModal.addEventListener('click', (e) => { if (e.target === apiModal) apiModal.classList.remove('active'); });
+        
+        sourceSelect.addEventListener('change', () => {
+            const isGoogle = sourceSelect.value === 'google';
+            document.querySelectorAll('.google-filter').forEach(f => f.style.display = isGoogle ? 'block' : 'none');
+            googleSizeSelect.style.display = isGoogle ? 'block' : 'none';
+            orientationSelect.style.display = isGoogle ? 'none' : 'block';
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            imageContainer.innerHTML = '';
+            loadMoreBtn.style.display = 'none';
+            messageDiv.textContent = '';
+            searchBox.value = '';
+            homePlaceholder.style.display = 'flex';
+        });
+
+        function showMessage(msg) {
+            imageContainer.innerHTML = '';
+            loadMoreBtn.style.display = 'none';
+            messageDiv.textContent = msg;
+            homePlaceholder.style.display = 'none';
+        }
+
+        async function performSearch(query, page = 1) {
+            currentQuery = query;
+            if (page === 1) {
+                imageContainer.innerHTML = '';
+            }
+            showMessage("खोज रहा है...");
+            const source = sourceSelect.value;
+            if (source === 'pexels' && apiKeys.pexels) { await searchPexels(query, page); } 
+            else if (source === 'google' && apiKeys.google) { await searchGoogle(query, page); } 
+            else { showMessage("कृपया सेटिंग्स में जाकर मान्य API कुंजी डालें।"); }
+        }
+        
+        async function searchPexels(query, page) {
+            const orientation = orientationSelect.value;
+            let url = `https://api.pexels.com/v1/search?query=${query}&page=${page}&per_page=15`;
+            if (orientation) url += `&orientation=${orientation}`;
+            try {
+                const response = await fetch(url, { headers: { Authorization: apiKeys.pexels } });
+                if (!response.ok) throw new Error('Pexels API Error');
+                const data = await response.json();
+                handleApiResponse(data.photos, data.next_page, 'pexels');
+            } catch (error) { showMessage("Pexels से चित्र लाने में त्रुटि। कृपया अपनी API कुंजी जांचें।"); }
+        }
+
+        async function searchGoogle(query, page) {
+            const start = (page - 1) * 10 + 1;
+            const color = colorSelect.value;
+            const type = typeSelect.value;
+            const size = googleSizeSelect.value;
+            let url = `https://www.googleapis.com/customsearch/v1?key=${apiKeys.google}&cx=${apiKeys.googleCx}&q=${query}&searchType=image&start=${start}`;
+            if (color) url += `&imgColorType=${color}`;
+            if (type) url += `&imgType=${type}`;
+            if (size) url += `&imgSize=${size}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Google API Error');
+                const data = await response.json();
+                handleApiResponse(data.items, data.queries.nextPage, 'google');
+            } catch (error) { showMessage("Google से चित्र लाने में त्रुटि। कृपया अपनी API कुंजी जांचें।"); }
+        }
+
+        function handleApiResponse(items, hasMore, source) {
+            if (currentPage === 1) imageContainer.innerHTML = '';
+            messageDiv.textContent = '';
+            if (!items || items.length === 0) {
+                if (currentPage === 1) showMessage(`'${currentQuery}' के लिए कोई परिणाम नहीं मिला।`);
+                loadMoreBtn.style.display = 'none'; return;
+            }
+            displayImages(items, source);
+            loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+        }
+
+        function displayImages(items, source) {
+            items.forEach(item => {
+                const data = {};
+                if (source === 'pexels') {
+                    data.imgSrc = item.src.large; 
+                    data.downloadUrl = item.src.original + '?dl=true'; 
+                    data.downloadAttr = 'download';
+                    data.altText = item.alt;
+                } else { 
+                    data.imgSrc = item.link; 
+                    data.downloadUrl = item.link; 
+                    data.downloadAttr = '';
+                    data.altText = item.title;
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                
+                card.innerHTML = `
+                    <img src="${data.imgSrc}" alt="${data.altText}" loading="lazy" onerror="this.parentElement.style.display='none'">
+                    <a href="${data.downloadUrl}" class="download-btn" target="_blank" ${data.downloadAttr}>
+                        डाउनलोड करें &#x21E9;
+                    </a>
+                `;
+                
+                imageContainer.appendChild(card);
+            });
+        }
+        
+        form.addEventListener('submit', (e) => { e.preventDefault(); const q = searchBox.value.trim(); if (q) { currentPage = 1; performSearch(q); homePlaceholder.style.display = 'none'; } });
+        loadMoreBtn.addEventListener('click', () => { currentPage++; performSearch(currentQuery, currentPage); });
+        
+        // --- PWA Service Worker Registration ---
+        const registerServiceWorker = async () => {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('sw.js');
+                    console.log('Service Worker registered with scope:', registration.scope);
+                } catch (error) {
+                    console.error('Service Worker registration failed:', error);
+                }
+            }
+        };
+
+        registerServiceWorker();
+        loadApiKeys();
+    });
+</script>
+</body>
+</html>
