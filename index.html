@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ran Image Generator</title>
 
-    <!-- PWA Manifest Link -->
     <link rel="manifest" href="manifest.json">
-    <!-- Theme color for browser UI -->
     <meta name="theme-color" content="#6a11cb">
 
-    <!-- JSZip library for creating zip files (This enables the zip download feature) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
@@ -48,11 +45,18 @@
 
         .search-container { background: var(--light-color); padding: 25px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 2rem; }
         #search-form { display: flex; flex-direction: column; gap: 15px; }
-        .prompt-row { display: flex; gap: 10px; align-items: center; }
-        .search-box { flex-grow: 1; padding: 12px; font-size: 1rem; border: 2px solid transparent; border-radius: 8px; background-color: #f0f2f5; transition: border-color 0.3s; }
-        .search-box:focus { outline: none; border-color: #6a11cb; }
-        .remove-prompt-btn { padding: 5px 10px; background-color: var(--secondary-color); color: white; border: none; border-radius: 50%; cursor: pointer; font-weight: bold; }
-        #add-prompt-btn { align-self: flex-start; padding: 8px 15px; background-color: var(--success-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #multi-prompt-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            background-color: #f0f2f5;
+        }
+        #multi-prompt-textarea:focus { outline: none; border-color: #6a11cb; }
+        
         .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .search-button { flex: 1 1 auto; padding: 12px 20px; font-size: 1rem; background-image: var(--primary-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
         .clear-button { flex: 1 1 auto; padding: 12px 20px; font-size: 1rem; background-color: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
@@ -65,55 +69,27 @@
         #home-placeholder svg { width: 80px; height: 80px; margin-bottom: 20px; opacity: 0.5; }
         #home-placeholder h2 { font-size: 1.5rem; }
 
-        #selection-actions { display: none; margin-bottom: 2rem; }
-        #download-selected-btn { width: 100%; padding: 15px; font-size: 1.1rem; background-color: var(--success-color); color: white; border: none; border-radius: 8px; cursor: pointer; }
-
         #results-container { display: flex; flex-direction: column; gap: 30px; }
-        .result-box { background-color: rgba(255, 255, 255, 0.7); padding: 20px; border-radius: 12px; box-shadow: var(--shadow); }
-        .result-box-title { margin-bottom: 15px; font-size: 1.5rem; color: var(--font-color); border-bottom: 2px solid #6a11cb; padding-bottom: 10px; }
+        .result-box { background-color: var(--light-color); padding: 20px; border-radius: 12px; box-shadow: var(--shadow); position: relative; }
+        .result-box-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .result-box-title { font-size: 1.5rem; color: var(--font-color); flex-grow: 1; margin: 0; }
+        .result-box-header button { padding: 8px 12px; font-size: 0.9rem; border: none; border-radius: 20px; color: white; cursor: pointer; }
+        .select-all-btn { background-color: #007aff; }
+        .download-zip-btn { background-color: var(--success-color); }
+        .close-box-btn { position: absolute; top: 15px; right: 15px; background-color: var(--danger-color); color: white; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; padding: 0; line-height: 30px; text-align: center; }
+        
         .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .image-card { background-color: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; position: relative; cursor: pointer; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
-        .image-card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .image-card { background-color: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .image-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
         .image-card img { width: 100%; height: 250px; object-fit: cover; display: block; }
-        .select-checkbox { position: absolute; top: 10px; right: 10px; width: 25px; height: 25px; cursor: pointer; z-index: 10; }
+        .select-checkbox { position: absolute; top: 10px; right: 10px; width: 25px; height: 25px; cursor: pointer; z-index: 10; accent-color: var(--primary-gradient); }
         
         .message { text-align: center; font-size: 1.2rem; color: #666; padding: 2rem 0; }
         .footer { text-align: center; padding: 1rem 0; background: var(--primary-gradient); color: white; }
         
-        @media (max-width: 768px) {
-            body { padding-top: 65px; padding-bottom: 50px; }
-            .header { position: fixed; top: 0; width: 100%; }
-            .footer { position: fixed; bottom: 0; width: 100%; padding: 15px 0; }
-            main { padding: 1rem 0; }
-        }
-
-        #image-preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 10px; overflow-y: auto; }
-        #image-preview-overlay.show { display: flex; }
-        .preview-content { background: white; border-radius: 12px; padding: 15px; max-width: 95vw; max-height: 95vh; display: flex; flex-direction: column; }
-        #preview-close-btn { align-self: flex-end; font-size: 2rem; color: #555; cursor: pointer; line-height: 1; }
-        #preview-img { max-width: 100%; max-height: 50vh; object-fit: contain; margin-bottom: 15px; }
-        #preview-info { font-size: 0.9rem; color: #555; margin-bottom: 15px; text-align: center; }
-        .preview-actions { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .preview-actions .action-btn { padding: 10px 20px; border: none; border-radius: 25px; font-size: 1rem; cursor: pointer; color: white; text-decoration: none; }
-        #preview-download-btn { background-color: #007aff; }
-        #preview-share-btn { background-color: #34c759; }
-        .related-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px; text-align: center; }
-        #related-images-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 150px; overflow-y: auto; }
-        #related-images-container img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; display: none; justify-content: center; align-items: center; }
-        .modal-overlay.active { display: flex; }
-        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); }
-        .modal-content h2 { margin-bottom: 20px; }
-        .modal-section { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .modal-section h3 { margin-top: 0; margin-bottom: 15px; }
-        .input-group { margin-bottom: 15px; }
-        .modal-content label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .modal-content input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-        .modal-actions { display: flex; gap: 10px; }
-        .modal-content button { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
-        .save-btn { background-color: #007aff; }
-        .remove-btn { background-color: var(--danger-color); }
-        .status-text { font-size: 0.8rem; color: var(--success-color); margin-top: 5px; height: 1em; }
+        @media (max-width: 768px) { body { padding-top: 65px; padding-bottom: 50px; } .header { position: fixed; top: 0; width: 100%; } .footer { position: fixed; bottom: 0; width: 100%; padding: 15px 0; } main { padding: 1rem 0; } }
+        #image-preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 10px; overflow-y: auto; } #image-preview-overlay.show { display: flex; } .preview-content { background: white; border-radius: 12px; padding: 15px; max-width: 95vw; max-height: 95vh; display: flex; flex-direction: column; } #preview-close-btn { align-self: flex-end; font-size: 2rem; color: #555; cursor: pointer; line-height: 1; } #preview-img { max-width: 100%; max-height: 50vh; object-fit: contain; margin-bottom: 15px; } #preview-info { font-size: 0.9rem; color: #555; margin-bottom: 15px; text-align: center; } .preview-actions { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; } .preview-actions .action-btn { padding: 10px 20px; border: none; border-radius: 25px; font-size: 1rem; cursor: pointer; color: white; text-decoration: none; } #preview-download-btn { background-color: #007aff; } #preview-share-btn { background-color: #34c759; } .related-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px; text-align: center; } #related-images-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 150px; overflow-y: auto; } #related-images-container img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; display: none; justify-content: center; align-items: center; } .modal-overlay.active { display: flex; } .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); } .modal-content h2 { margin-bottom: 20px; } .modal-section { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px; } .modal-section h3 { margin-top: 0; margin-bottom: 15px; } .input-group { margin-bottom: 15px; } .modal-content label { display: block; margin-bottom: 5px; font-weight: bold; } .modal-content input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; } .modal-actions { display: flex; gap: 10px; } .modal-content button { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; } .save-btn { background-color: #007aff; } .remove-btn { background-color: var(--danger-color); } .status-text { font-size: 0.8rem; color: var(--success-color); margin-top: 5px; height: 1em; }
     </style>
 </head>
 <body>
@@ -123,10 +99,7 @@
     <main class="container">
         <section class="search-container">
             <form id="search-form">
-                <div id="multi-search-area">
-                    <!-- Prompt inputs will be added here dynamically -->
-                </div>
-                <button type="button" id="add-prompt-btn">+ और प्रॉम्प्ट जोड़ें</button>
+                <textarea id="multi-prompt-textarea" placeholder="यहाँ एक या अधिक प्रॉम्प्ट डालें (हर प्रॉम्प्ट नई लाइन पर)..." required></textarea>
                 <div class="form-actions">
                     <button type="submit" class="search-button">खोजें</button>
                     <button type="button" id="clear-btn" class="clear-button">साफ़ करें</button>
@@ -140,7 +113,7 @@
                     <option value="15">15 तस्वीरें</option>
                     <option value="20">20 तस्वीरें</option>
                 </select>
-                <select id="orientation-select"><option value="">कोई भी ओरिएंटेशन</option><option value="landscape">16:9</option><option value="portrait">9:16</option><option value="square">1:1</option></select>
+                <select id="orientation-select"><option value="">कोई भी ओरिएंटेशन</option><option value="landscape">Landscape</option><option value="portrait">Portrait</option><option value="square">Square</option></select>
                 <select id="google-size-select"><option value="">कोई भी साइज़</option><option value="large">बड़ा</option><option value="medium">मीडियम</option><option value="small">छोटा</option><option value="icon">आइकन</option></select>
                 <select id="color-select" class="google-filter"><option value="">कोई भी रंग</option><option value="color">रंगीन</option><option value="gray">ब्लैक & वाइट</option></select>
                 <select id="type-select" class="google-filter"><option value="">कोई भी प्रकार</option><option value="photo">फोटो</option><option value="clipart">क्लिपआर्ट</option><option value="lineart">लाइन आर्ट</option></select>
@@ -149,37 +122,26 @@
 
         <div id="home-placeholder"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.92,7.62A1,1,0,0,0,21,7H3a1,1,0,0,0-.92.62,1,1,0,0,0,.21,1.09l5.45,5.45A1,1,0,0,1,8,15.59V19a1,1,0,0,0,1,1H15a1,1,0,0,0,1-1V15.59a1,1,0,0,1,.29-.71l5.45-5.45A1,1,0,0,0,21.92,7.62ZM15.29,14.88a3,3,0,0,0-.87,2.12V18H9.58V17a3,3,0,0,0-.87-2.12L4.41,10H19.59ZM12,6a3,3,0,1,0-3-3A3,3,0,0,0,12,6Z"/></svg><h2>Ran Image Generator</h2><p>कुछ भी खोजने के लिए ऊपर सर्च करें। आप एक से ज़्यादा प्रॉम्प्ट भी जोड़ सकते हैं।</p></div>
         
-        <section id="selection-actions">
-            <button id="download-selected-btn">चुनी हुई तस्वीरें डाउनलोड करें (.zip)</button>
-        </section>
-
         <section id="results-container"></section>
         <div id="message" class="message"></div>
     </main>
     <footer class="footer"><p>&copy; 2023 Ran Image Generator</p></footer>
     
-    <div class="modal-overlay" id="api-modal"><div class="modal-content"><h2>API Key सेटिंग्स</h2><div class="modal-section"><h3>Pexels Settings</h3><div class="input-group"><label for="pexels-key">Pexels API Key</label><input type="password" id="pexels-key" placeholder="Pexels की Key यहाँ डालें"></div><div class="modal-actions"><button id="save-pexels-btn" class="save-btn">सेव करें</button><button id="remove-pexels-btn" class="remove-btn">Remove Key</button></div><p id="pexels-status" class="status-text"></p></div><div class="modal-section"><h3>Google Settings</h3><div class="input-group"><label for="google-key">Google API Key</label><input type="password" id="google-key" placeholder="Google API Key यहाँ डालें"></div><div class="input-group"><label for="google-cx">Google Search Engine ID (CX)</label><input type="password" id="google-cx" placeholder="Google CX ID यहाँ डालें"></div><div class="modal-actions"><button id="save-google-btn" class="save-btn">सेव करें</button><button id="remove-google-btn" class="remove-btn">Remove Keys</button></div><p id="google-status" class="status-text"></p></div></div></div>
+    <div class="modal-overlay" id="api-modal"> <div class="modal-content"><h2>API Key सेटिंग्स</h2><div class="modal-section"><h3>Pexels Settings</h3><div class="input-group"><label for="pexels-key">Pexels API Key</label><input type="password" id="pexels-key" placeholder="Pexels की Key यहाँ डालें"></div><div class="modal-actions"><button id="save-pexels-btn" class="save-btn">सेव करें</button><button id="remove-pexels-btn" class="remove-btn">Remove Key</button></div><p id="pexels-status" class="status-text"></p></div><div class="modal-section"><h3>Google Settings</h3><div class="input-group"><label for="google-key">Google API Key</label><input type="password" id="google-key" placeholder="Google API Key यहाँ डालें"></div><div class="input-group"><label for="google-cx">Google Search Engine ID (CX)</label><input type="password" id="google-cx" placeholder="Google CX ID यहाँ डालें"></div><div class="modal-actions"><button id="save-google-btn" class="save-btn">सेव करें</button><button id="remove-google-btn" class="remove-btn">Remove Keys</button></div><p id="google-status" class="status-text"></p></div></div></div>
     <div id="image-preview-overlay"><div class="preview-content"><span id="preview-close-btn">&times;</span><img id="preview-img" src="" alt="Image Preview"><p id="preview-info"></p><div class="preview-actions"><a id="preview-download-btn" class="action-btn" href="#" target="_blank">डाउनलोड</a><button id="preview-share-btn" class="action-btn">शेयर</button></div><h3 class="related-title">मिलती-जुलती तस्वीरें</h3><div id="related-images-container"></div></div></div>
-
+    
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
-                    console.log('ServiceWorker Registration successful with scope: ', registration.scope);
-                })
-                .catch(err => {
-                    console.log('ServiceWorker Registration failed: ', err);
-                });
+            navigator.serviceWorker.register('sw.js').then(reg => console.log('SW registered.')).catch(err => console.log('SW registration failed:', err));
         });
     }
 
-    // --- The rest of your existing JavaScript code ---
+    // --- DOM Elements ---
     const form = document.getElementById('search-form');
-    const multiSearchArea = document.getElementById('multi-search-area');
-    const addPromptBtn = document.getElementById('add-prompt-btn');
+    const promptTextarea = document.getElementById('multi-prompt-textarea');
     const clearBtn = document.getElementById('clear-btn');
     const resultsContainer = document.getElementById('results-container');
     const messageDiv = document.getElementById('message');
@@ -190,8 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const colorSelect = document.getElementById('color-select');
     const typeSelect = document.getElementById('type-select');
     const homePlaceholder = document.getElementById('home-placeholder');
-    const selectionActions = document.getElementById('selection-actions');
-    const downloadSelectedBtn = document.getElementById('download-selected-btn');
+    
+    // Sidebar and Modal Elements (This was missing)
     const menuToggle = document.getElementById('menu-toggle');
     const sideNav = document.getElementById('side-nav');
     const closeNav = document.getElementById('close-nav');
@@ -206,6 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleCxInput = document.getElementById('google-cx');
     const pexelsStatus = document.getElementById('pexels-status');
     const googleStatus = document.getElementById('google-status');
+    
+    // Preview Modal Elements
     const previewOverlay = document.getElementById('image-preview-overlay');
     const previewImg = document.getElementById('preview-img');
     const previewInfo = document.getElementById('preview-info');
@@ -213,36 +177,143 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewShareBtn = document.getElementById('preview-share-btn');
     const previewCloseBtn = document.getElementById('preview-close-btn');
     const relatedImagesContainer = document.getElementById('related-images-container');
+
+    // App State
     let apiKeys = { pexels: '', google: '', googleCx: '' };
     let allImagesData = [];
+
+    // --- Sidebar, Modal, and UI Navigation ---
+    menuToggle.addEventListener('click', () => sideNav.classList.add('active'));
+    closeNav.addEventListener('click', () => sideNav.classList.remove('active'));
+    settingsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        apiModal.classList.add('active');
+        sideNav.classList.remove('active'); // Close side nav when settings open
+    });
+    apiModal.addEventListener('click', (e) => {
+        if (e.target === apiModal) apiModal.classList.remove('active');
+    });
+
+    clearBtn.addEventListener('click', () => {
+        resultsContainer.innerHTML = '';
+        messageDiv.textContent = '';
+        promptTextarea.value = '';
+        homePlaceholder.style.display = 'flex';
+        allImagesData = [];
+    });
+
+    sourceSelect.addEventListener('change', () => {
+        const isGoogle = sourceSelect.value === 'google';
+        document.querySelectorAll('.google-filter').forEach(f => f.style.display = isGoogle ? 'block' : 'none');
+        googleSizeSelect.style.display = isGoogle ? 'block' : 'none';
+        orientationSelect.style.display = isGoogle ? 'none' : 'block';
+    });
+    
+    // --- API Key Management (Functions remain the same) ---
+    function loadApiKeys() { /* ... full function code from previous version ... */ }
+    function updateSourceOptions() { /* ... full function code from previous version ... */ }
+    // (Event listeners for save/remove buttons are below)
+
+    // --- Search and Display Logic ---
+    async function performSearch(prompts) {
+        resultsContainer.innerHTML = '';
+        messageDiv.textContent = '';
+        homePlaceholder.style.display = 'none';
+        allImagesData = [];
+        const imageCount = imageCountSelect.value;
+        const searchPromises = prompts.map(query => {
+            const resultBox = document.createElement('div');
+            resultBox.className = 'result-box';
+            resultBox.dataset.prompt = query;
+            resultBox.innerHTML = `
+                <button class="close-box-btn" title="इस बॉक्स को बंद करें">X</button>
+                <div class="result-box-header">
+                    <h3 class="result-box-title">"${query}"</h3>
+                    <button class="select-all-btn">सभी चुनें</button>
+                    <button class="download-zip-btn">चुनी हुई Zip डाउनलोड करें</button>
+                </div>
+                <div class="image-grid"></div>
+                <p class="message result-message"></p>
+            `;
+            resultsContainer.appendChild(resultBox);
+            const imageGrid = resultBox.querySelector('.image-grid');
+            const resultMessage = resultBox.querySelector('.result-message');
+            resultBox.querySelector('.close-box-btn').addEventListener('click', () => resultBox.remove());
+            resultBox.querySelector('.select-all-btn').addEventListener('click', (e) => toggleSelectAll(resultBox, e.target));
+            resultBox.querySelector('.download-zip-btn').addEventListener('click', (e) => downloadBoxAsZip(resultBox, e.target));
+            return fetchAndDisplay(query, imageGrid, resultMessage, imageCount);
+        });
+        await Promise.all(searchPromises);
+    }
+    
+    function toggleSelectAll(resultBox, btn) {
+        const checkboxes = resultBox.querySelectorAll('.select-checkbox');
+        const isCurrentlyAllSelected = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => { cb.checked = !isCurrentlyAllSelected; });
+        btn.textContent = isCurrentlyAllSelected ? 'सभी चुनें' : 'सभी हटाएं';
+    }
+    
+    async function downloadBoxAsZip(resultBox, btn) {
+        const promptText = resultBox.dataset.prompt;
+        const filename = promptText.replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '') + '.zip';
+        const checkedBoxes = resultBox.querySelectorAll('.select-checkbox:checked');
+        if (checkedBoxes.length === 0) { alert('कृपया डाउनलोड करने के लिए इस बॉक्स में कम से कम एक तस्वीर चुनें।'); return; }
+        const btnOriginalText = btn.textContent;
+        btn.textContent = 'ज़िपिंग... (0%)';
+        btn.disabled = true;
+        const zip = new JSZip();
+        let downloadedCount = 0;
+        const fetchPromises = Array.from(checkedBoxes).map(async (box, index) => {
+            const card = box.closest('.image-card');
+            const url = card.dataset.downloadUrl;
+            let imgFilename = `image-${index + 1}`;
+            const urlParts = url.split('?')[0].split('.');
+            if (urlParts.length > 1) { imgFilename += '.' + urlParts.pop(); }
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Fetch failed`);
+                const blob = await response.blob();
+                zip.file(imgFilename, blob);
+                downloadedCount++;
+                btn.textContent = `ज़िपिंग... (${Math.round((downloadedCount / checkedBoxes.length) * 100)}%)`;
+            } catch (error) { console.error(`Download failed for ${url}:`, error); zip.file(`failed_download_${index+1}.txt`, `Could not download from URL: ${url}`); }
+        });
+        await Promise.all(fetchPromises);
+        zip.generateAsync({ type: "blob" }).then(function(content) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            btn.textContent = btnOriginalText;
+            btn.disabled = false;
+        });
+    }
+
+    form.addEventListener('submit', (e) => { 
+        e.preventDefault();
+        const prompts = promptTextarea.value.trim().split('\n').map(p => p.trim()).filter(p => p.length > 0);
+        if (prompts.length > 0) { performSearch(prompts); } else { showMessage("कृपया खोजने के लिए कम से कम एक प्रॉम्प्ट डालें।"); }
+    });
+
+    // --- ALL OTHER FUNCTIONS (COPY-PASTED FOR COMPLETENESS) ---
+    loadApiKeys();
     function loadApiKeys() {apiKeys.pexels = localStorage.getItem('pexelsApiKey') || '';apiKeys.google = localStorage.getItem('googleApiKey') || '';apiKeys.googleCx = localStorage.getItem('googleCxId') || '';pexelsKeyInput.value = apiKeys.pexels;googleKeyInput.value = apiKeys.google;googleCxInput.value = apiKeys.googleCx;updateSourceOptions();const pexelsReady = apiKeys.pexels;const googleReady = apiKeys.google && apiKeys.googleCx;if (!pexelsReady && !googleReady) { setTimeout(() => apiModal.classList.add('active'), 500); }}
     function updateSourceOptions() {const pexelsOption = sourceSelect.querySelector('option[value="pexels"]');const googleOption = sourceSelect.querySelector('option[value="google"]');pexelsOption.disabled = !apiKeys.pexels;googleOption.disabled = !apiKeys.google || !apiKeys.googleCx;if (sourceSelect.options[sourceSelect.selectedIndex].disabled) {sourceSelect.value = !googleOption.disabled ? 'google' : 'pexels';}sourceSelect.dispatchEvent(new Event('change'));}
     savePexelsBtn.addEventListener('click', () => {const key = pexelsKeyInput.value.trim();if (key) {localStorage.setItem('pexelsApiKey', key);apiKeys.pexels = key;pexelsStatus.textContent = 'Pexels Key Saved!';setTimeout(() => { pexelsStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000);updateSourceOptions();} else { alert('कृपया Pexels API Key डालें।'); }});
     removePexelsBtn.addEventListener('click', () => {localStorage.removeItem('pexelsApiKey');apiKeys.pexels = '';pexelsKeyInput.value = '';pexelsStatus.textContent = 'Pexels Key Removed!';setTimeout(() => pexelsStatus.textContent = '', 2000);updateSourceOptions();});
     saveGoogleBtn.addEventListener('click', () => {const apiKey = googleKeyInput.value.trim();const cxId = googleCxInput.value.trim();if (apiKey && cxId) {localStorage.setItem('googleApiKey', apiKey);localStorage.setItem('googleCxId', cxId);apiKeys.google = apiKey;apiKeys.googleCx = cxId;googleStatus.textContent = 'Google Keys Saved!';setTimeout(() => { googleStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000);updateSourceOptions();} else { alert('कृपया Google की दोनों Keys डालें।'); }});
     removeGoogleBtn.addEventListener('click', () => {localStorage.removeItem('googleApiKey');localStorage.removeItem('googleCxId');apiKeys.google = '';apiKeys.googleCx = '';googleKeyInput.value = '';googleCxInput.value = '';googleStatus.textContent = 'Google Keys Removed!';setTimeout(() => googleStatus.textContent = '', 2000);updateSourceOptions();});
-    menuToggle.addEventListener('click', () => sideNav.classList.add('active'));
-    closeNav.addEventListener('click', () => sideNav.classList.remove('active'));
-    settingsBtn.addEventListener('click', (e) => { e.preventDefault(); apiModal.classList.add('active'); sideNav.classList.remove('active'); });
-    apiModal.addEventListener('click', (e) => { if (e.target === apiModal) apiModal.classList.remove('active'); });
-    sourceSelect.addEventListener('change', () => {const isGoogle = sourceSelect.value === 'google';document.querySelectorAll('.google-filter').forEach(f => f.style.display = isGoogle ? 'block' : 'none');googleSizeSelect.style.display = isGoogle ? 'block' : 'none';orientationSelect.style.display = isGoogle ? 'none' : 'block';});
-    clearBtn.addEventListener('click', () => {resultsContainer.innerHTML = '';messageDiv.textContent = '';multiSearchArea.innerHTML = '';addPromptInput();homePlaceholder.style.display = 'flex';selectionActions.style.display = 'none';allImagesData = [];});
-    function addPromptInput(value = '') {const promptRow = document.createElement('div');promptRow.className = 'prompt-row';promptRow.innerHTML = `<input type="text" class="search-box" placeholder="कुछ भी खोजें..." value="${value}" required><button type="button" class="remove-prompt-btn" title="यह प्रॉम्प्ट हटाएं">X</button>`;multiSearchArea.appendChild(promptRow);promptRow.querySelector('.remove-prompt-btn').addEventListener('click', () => {if (multiSearchArea.children.length > 1) {promptRow.remove();} else {promptRow.querySelector('.search-box').value = '';}});}
-    addPromptBtn.addEventListener('click', () => addPromptInput());
-    function showMessage(msg) {resultsContainer.innerHTML = '';messageDiv.textContent = msg;homePlaceholder.style.display = 'none';selectionActions.style.display = 'none';}
-    async function performSearch(prompts) {resultsContainer.innerHTML = '';messageDiv.textContent = '';homePlaceholder.style.display = 'none';selectionActions.style.display = 'none';allImagesData = [];const imageCount = imageCountSelect.value;const searchPromises = prompts.map(query => {const resultBox = document.createElement('div');resultBox.className = 'result-box';resultBox.innerHTML = `<h3 class="result-box-title">"${query}" के लिए परिणाम</h3><div class="image-grid"></div><p class="message result-message"></p>`;resultsContainer.appendChild(resultBox);const imageGrid = resultBox.querySelector('.image-grid');const resultMessage = resultBox.querySelector('.result-message');return fetchAndDisplay(query, imageGrid, resultMessage, imageCount);});await Promise.all(searchPromises);if (allImagesData.length > 0) {selectionActions.style.display = 'block';}}
+    function showMessage(msg) {resultsContainer.innerHTML = '';messageDiv.textContent = msg;homePlaceholder.style.display = 'none';}
     async function fetchAndDisplay(query, targetGrid, targetMessage, count) {targetMessage.textContent = "तस्वीरें खोजी जा रही हैं...";const source = sourceSelect.value;let items = [];let errorMsg = null;try {if (source === 'pexels' && apiKeys.pexels) {const orientation = orientationSelect.value;let url = `https://api.pexels.com/v1/search?query=${query}&page=1&per_page=${count}`;if (orientation) url += `&orientation=${orientation}`;const response = await fetch(url, { headers: { Authorization: apiKeys.pexels } });if (!response.ok) throw new Error('Pexels API Error');const data = await response.json();items = data.photos;} else if (source === 'google' && apiKeys.google) {const googleCount = Math.min(count, 10);const color = colorSelect.value;const type = typeSelect.value;const size = googleSizeSelect.value;let url = `https://www.googleapis.com/customsearch/v1?key=${apiKeys.google}&cx=${apiKeys.googleCx}&q=${query}&searchType=image&start=1&num=${googleCount}`;if (color) url += `&imgColorType=${color}`;if (type) url += `&imgType=${type}`;if (size) url += `&imgSize=${size}`;const response = await fetch(url);if (!response.ok) throw new Error('Google API Error');const data = await response.json();items = data.items;} else {errorMsg = "कृपया सेटिंग्स में जाकर इस स्रोत के लिए API Keys डालें।";}} catch (error) {errorMsg = `${source} से तस्वीरें लोड करने में समस्या हुई। अपनी Key जांचें।`;}targetMessage.textContent = '';if (errorMsg) {targetMessage.textContent = errorMsg;return;}if (!items || items.length === 0) {targetMessage.textContent = `'${query}' के लिए कोई तस्वीर नहीं मिली।`;return;}displayImages(items, source, targetGrid);}
     function displayImages(items, source, targetGrid) {items.forEach(item => {const data = {};if (source === 'pexels') {data.imgSrc = item.src.large;data.author = `By: ${item.photographer}`;data.downloadUrl = item.src.original;data.downloadAttr = 'download';data.altText = item.alt;} else {if (!item.link) return;data.imgSrc = item.link;data.author = item.displayLink;data.downloadUrl = item.link;data.downloadAttr = '';data.altText = item.title;}const currentId = allImagesData.length;data.id = currentId;allImagesData.push(data);const card = document.createElement('div');card.className = 'image-card';card.dataset.id = currentId;card.dataset.downloadUrl = data.downloadUrl;card.innerHTML = `<input type="checkbox" class="select-checkbox" title="इस तस्वीर को चुनें"><img src="${data.imgSrc}" alt="${data.altText}" loading="lazy" onerror="this.parentElement.style.display='none'">`;card.querySelector('img').addEventListener('click', () => openPreview(currentId));card.querySelector('.select-checkbox').addEventListener('click', (e) => e.stopPropagation());targetGrid.appendChild(card);});}
-    downloadSelectedBtn.addEventListener('click', async () => {const checkedBoxes = document.querySelectorAll('.select-checkbox:checked');if (checkedBoxes.length === 0) {alert('कृपया डाउनलोड करने के लिए कम से कम एक तस्वीर चुनें।');return;}const btnOriginalText = downloadSelectedBtn.textContent;downloadSelectedBtn.textContent = 'ज़िपिंग हो रही है... (0%)';downloadSelectedBtn.disabled = true;const zip = new JSZip();let downloadedCount = 0;const fetchPromises = Array.from(checkedBoxes).map(async (box, index) => {const card = box.closest('.image-card');const url = card.dataset.downloadUrl;let filename = `image-${index + 1}`;const urlParts = url.split('?')[0].split('.');if (urlParts.length > 1) {filename += '.' + urlParts.pop();}try {const response = await fetch(url);if (!response.ok) throw new Error(`Failed to fetch ${url}`);const blob = await response.blob();zip.file(filename, blob);downloadedCount++;downloadSelectedBtn.textContent = `ज़िपिंग हो रही है... (${Math.round((downloadedCount / checkedBoxes.length) * 100)}%)`;} catch (error) {console.error(`Could not download image from ${url}:`, error);zip.file(`failed-to-download-${index+1}.txt`, `Could not download from URL: ${url}`);}});await Promise.all(fetchPromises);zip.generateAsync({ type: "blob" }).then(function(content) {const link = document.createElement('a');link.href = URL.createObjectURL(content);link.download = "Ran_Image_Generator_Images.zip";document.body.appendChild(link);link.click();document.body.removeChild(link);URL.revokeObjectURL(link.href);downloadSelectedBtn.textContent = btnOriginalText;downloadSelectedBtn.disabled = false;});});
     function openPreview(id) {const data = allImagesData[id];if (!data) return;previewImg.src = data.imgSrc;previewInfo.textContent = `Source: ${data.author}`;previewDownloadBtn.href = data.downloadUrl;data.downloadAttr === 'download' ? previewDownloadBtn.setAttribute('download', '') : previewDownloadBtn.removeAttribute('download');previewShareBtn.onclick = () => shareImage(data.downloadUrl, data.altText);previewOverlay.classList.add('show');loadRelatedImages();}
     function closePreview() { previewOverlay.classList.remove('show'); }
-    function loadRelatedImages() {relatedImagesContainer.innerHTML = '';const shuffled = [...allImagesData].sort(() => 0.5 - Math.random());const selected = shuffled.slice(0, 6);selected.forEach(data => {const img = document.createElement('img');img.src = data.imgSrc;img.addEventListener('click', () => openPreview(data.id));relatedImagesContainer.appendChild(img);});}
+    function loadRelatedImages() {relatedImagesContainer.innerHTML = '';const shuffled = [...allImagesData].sort(() => 0.5 - Math.random()).slice(0, 6);shuffled.forEach(data => {const img = document.createElement('img');img.src = data.imgSrc;img.addEventListener('click', () => openPreview(data.id));relatedImagesContainer.appendChild(img);});}
     function shareImage(url, text) {if (navigator.share) {navigator.share({ title: 'Check out this image!', text: text, url: url }).catch(console.error);} else {navigator.clipboard.writeText(url).then(() => { alert('Image link copied to clipboard!'); });}}
-    previewCloseBtn.addEventListener('click', closePreview);
-    previewOverlay.addEventListener('click', (e) => { if (e.target === previewOverlay) closePreview(); });
-    form.addEventListener('submit', (e) => {e.preventDefault();const prompts = [...document.querySelectorAll('.search-box')].map(input => input.value.trim()).filter(prompt => prompt.length > 0);if (prompts.length > 0) {performSearch(prompts);} else {showMessage("कृपया खोजने के लिए कम से कम एक प्रॉम्प्ट डालें।");}});
-    loadApiKeys();
-    addPromptInput();
+    previewCloseBtn.addEventListener('click', closePreview);previewOverlay.addEventListener('click', (e) => { if (e.target === previewOverlay) closePreview(); });
 });
 </script>
 </body>
