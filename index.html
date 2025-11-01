@@ -89,10 +89,7 @@
         
         @media (max-width: 768px) { body { padding-top: 65px; padding-bottom: 50px; } .header { position: fixed; top: 0; width: 100%; } .footer { position: fixed; bottom: 0; width: 100%; padding: 15px 0; } main { padding: 1rem 0; } }
         #image-preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 10px; overflow-y: auto; } #image-preview-overlay.show { display: flex; } .preview-content { background: white; border-radius: 12px; padding: 15px; max-width: 95vw; max-height: 95vh; display: flex; flex-direction: column; } #preview-close-btn { align-self: flex-end; font-size: 2rem; color: #555; cursor: pointer; line-height: 1; } #preview-img { max-width: 100%; max-height: 50vh; object-fit: contain; margin-bottom: 15px; } #preview-info { font-size: 0.9rem; color: #555; margin-bottom: 15px; text-align: center; } .preview-actions { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; } .preview-actions .action-btn { padding: 10px 20px; border: none; border-radius: 25px; font-size: 1rem; cursor: pointer; color: white; text-decoration: none; } #preview-download-btn { background-color: #007aff; } #preview-share-btn { background-color: #34c759; } .related-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px; text-align: center; } #related-images-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 150px; overflow-y: auto; } #related-images-container img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 20px 0; } 
-        
-        .modal-overlay.active { display: flex; } .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); } .modal-content h2 { margin-bottom: 20px; } .modal-section { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px; } .modal-section h3 { margin-top: 0; margin-bottom: 15px; } .input-group { margin-bottom: 15px; } .modal-content label { display: block; margin-bottom: 5px; font-weight: bold; } .modal-content input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; } .modal-actions { display: flex; gap: 10px; } .modal-content button { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; } .save-btn { background-color: #007aff; } .remove-btn { background-color: var(--danger-color); } .status-text { font-size: 0.8rem; color: var(--success-color); margin-top: 5px; height: 1em; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; display: none; justify-content: center; align-items: center; } .modal-overlay.active { display: flex; } .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); } .modal-content h2 { margin-bottom: 20px; } .modal-section { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px; } .modal-section h3 { margin-top: 0; margin-bottom: 15px; } .input-group { margin-bottom: 15px; } .modal-content label { display: block; margin-bottom: 5px; font-weight: bold; } .modal-content input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; } .modal-actions { display: flex; gap: 10px; } .modal-content button { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; } .save-btn { background-color: #007aff; } .remove-btn { background-color: var(--danger-color); } .status-text { font-size: 0.8rem; color: var(--success-color); margin-top: 5px; height: 1em; }
     </style>
 </head>
 <body>
@@ -110,11 +107,9 @@
             </form>
             <div class="filters">
                 <select id="source-select">
-                    <option value="deepai">स्रोत: DeepAI (Free)</option>
-                    <option value="replicate">स्रोत: Replicate.com</option>
-                    <option value="huggingface">स्रोत: Hugging Face</option>
                     <option value="google">स्रोत: Google</option>
                     <option value="pexels">स्रोत: Pexels</option>
+                    <option value="huggingface">स्रोत: Hugging Face</option>
                 </select>
                 <select id="image-count-select">
                     <option value="5">5 तस्वीरें</option>
@@ -139,30 +134,6 @@
     <div class="modal-overlay" id="api-modal">
         <div class="modal-content">
             <h2>API Key सेटिंग्स</h2>
-             <div class="modal-section">
-                <h3>DeepAI Settings (Free)</h3>
-                <div class="input-group">
-                    <label for="deepai-key">DeepAI API Key</label>
-                    <input type="password" id="deepai-key" placeholder="DeepAI की Key यहाँ डालें">
-                </div>
-                <div class="modal-actions">
-                    <button id="save-deepai-btn" class="save-btn">सेव करें</button>
-                    <button id="remove-deepai-btn" class="remove-btn">Remove Key</button>
-                </div>
-                <p id="deepai-status" class="status-text"></p>
-            </div>
-            <div class="modal-section">
-                <h3>Replicate.com Settings</h3>
-                <div class="input-group">
-                    <label for="replicate-key">Replicate API Token</label>
-                    <input type="password" id="replicate-key" placeholder="Replicate का Token यहाँ डालें">
-                </div>
-                <div class="modal-actions">
-                    <button id="save-replicate-btn" class="save-btn">सेव करें</button>
-                    <button id="remove-replicate-btn" class="remove-btn">Remove Token</button>
-                </div>
-                <p id="replicate-status" class="status-text"></p>
-            </div>
             <div class="modal-section">
                 <h3>Hugging Face Settings</h3>
                 <div class="input-group">
@@ -209,9 +180,6 @@
     
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Using a CORS proxy to bypass browser security for API calls from a local file.
-    const PROXY_URL = 'https://thingproxy.freeboard.io/fetch/';
-
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -239,18 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeNav = document.getElementById('close-nav');
     const settingsBtn = document.getElementById('settings-btn');
     const apiModal = document.getElementById('api-modal');
-
-    // DeepAI Elements
-    const deepaiKeyInput = document.getElementById('deepai-key');
-    const saveDeepaiBtn = document.getElementById('save-deepai-btn');
-    const removeDeepaiBtn = document.getElementById('remove-deepai-btn');
-    const deepaiStatus = document.getElementById('deepai-status');
-
-    // Replicate Elements
-    const replicateKeyInput = document.getElementById('replicate-key');
-    const saveReplicateBtn = document.getElementById('save-replicate-btn');
-    const removeReplicateBtn = document.getElementById('remove-replicate-btn');
-    const replicateStatus = document.getElementById('replicate-status');
     
     // Pexels API Elements
     const savePexelsBtn = document.getElementById('save-pexels-btn');
@@ -281,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const relatedImagesContainer = document.getElementById('related-images-container');
 
     // App State
-    let apiKeys = { pexels: '', google: '', googleCx: '', huggingface: '', replicate: '', deepai: '' };
+    let apiKeys = { pexels: '', google: '', googleCx: '', huggingface: '' };
     let allImagesData = [];
 
     // --- UI Navigation ---
@@ -308,60 +264,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const source = sourceSelect.value;
         const isGoogle = source === 'google';
         const isPexels = source === 'pexels';
-        const isAi = ['replicate', 'huggingface', 'deepai'].includes(source);
-
-        document.querySelectorAll('.google-filter, #google-size-select').forEach(f => f.style.display = isGoogle ? 'block' : 'none');
+        
+        document.querySelectorAll('.google-filter').forEach(f => f.style.display = isGoogle ? 'block' : 'none');
+        googleSizeSelect.style.display = isGoogle ? 'block' : 'none';
         orientationSelect.style.display = isPexels ? 'block' : 'none';
-        imageCountSelect.style.display = (isGoogle || isPexels) ? 'block' : 'none';
+        
+        // Hide filters not applicable to Hugging Face
+        if (source === 'huggingface') {
+            document.querySelectorAll('.google-filter, #google-size-select, #orientation-select, #image-count-select').forEach(el => el.style.display = 'none');
+        } else {
+             $('#image-count-select').style.display = 'block'; // Show it for others
+        }
     });
     
     // --- API Key Management ---
     function loadApiKeys() {
-        // Load keys from localStorage. This is a secure way to store user-specific keys.
-        apiKeys.deepai = localStorage.getItem('deepaiApiKey') || '';
-        apiKeys.replicate = localStorage.getItem('replicateApiKey') || '';
-        apiKeys.huggingface = localStorage.getItem('huggingfaceApiKey') || '';
         apiKeys.pexels = localStorage.getItem('pexelsApiKey') || '';
         apiKeys.google = localStorage.getItem('googleApiKey') || '';
         apiKeys.googleCx = localStorage.getItem('googleCxId') || '';
+        apiKeys.huggingface = localStorage.getItem('huggingfaceApiKey') || '';
 
-        deepaiKeyInput.value = apiKeys.deepai;
-        replicateKeyInput.value = apiKeys.replicate;
-        huggingFaceKeyInput.value = apiKeys.huggingface;
         pexelsKeyInput.value = apiKeys.pexels;
         googleKeyInput.value = apiKeys.google;
         googleCxInput.value = apiKeys.googleCx;
+        huggingFaceKeyInput.value = apiKeys.huggingface;
 
         updateSourceOptions();
-        
-        // If no keys are set at all, prompt the user to add them.
-        const anyKeyReady = Object.values(apiKeys).some(key => !!key);
+        const anyKeyReady = apiKeys.pexels || (apiKeys.google && apiKeys.googleCx) || apiKeys.huggingface;
         if (!anyKeyReady) {
             setTimeout(() => apiModal.classList.add('active'), 500);
         }
     }
     
     function updateSourceOptions() {
-        document.querySelector('option[value="deepai"]').disabled = !apiKeys.deepai;
-        document.querySelector('option[value="replicate"]').disabled = !apiKeys.replicate;
-        document.querySelector('option[value="huggingface"]').disabled = !apiKeys.huggingface;
-        document.querySelector('option[value="pexels"]').disabled = !apiKeys.pexels;
-        document.querySelector('option[value="google"]').disabled = !apiKeys.google || !apiKeys.googleCx;
-        
+        const pexelsOption = sourceSelect.querySelector('option[value="pexels"]');
+        const googleOption = sourceSelect.querySelector('option[value="google"]');
+        const huggingfaceOption = sourceSelect.querySelector('option[value="huggingface"]');
+
+        pexelsOption.disabled = !apiKeys.pexels;
+        googleOption.disabled = !apiKeys.google || !apiKeys.googleCx;
+        huggingfaceOption.disabled = !apiKeys.huggingface;
+
         if (sourceSelect.options[sourceSelect.selectedIndex].disabled) {
              const firstEnabledOption = Array.from(sourceSelect.options).find(opt => !opt.disabled);
-             if (firstEnabledOption) sourceSelect.value = firstEnabledOption.value;
+             if (firstEnabledOption) {
+                sourceSelect.value = firstEnabledOption.value;
+             }
         }
         sourceSelect.dispatchEvent(new Event('change'));
     }
-
-    // DeepAI Listeners
-    saveDeepaiBtn.addEventListener('click', () => { const key = deepaiKeyInput.value.trim(); if (key) { localStorage.setItem('deepaiApiKey', key); apiKeys.deepai = key; deepaiStatus.textContent = 'DeepAI Key Saved!'; setTimeout(() => { deepaiStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000); updateSourceOptions(); } else { alert('कृपया DeepAI API Key डालें।'); } });
-    removeDeepaiBtn.addEventListener('click', () => { localStorage.removeItem('deepaiApiKey'); apiKeys.deepai = ''; deepaiKeyInput.value = ''; deepaiStatus.textContent = 'DeepAI Key Removed!'; setTimeout(() => deepaiStatus.textContent = '', 2000); updateSourceOptions(); });
-
-    // Replicate Listeners
-    saveReplicateBtn.addEventListener('click', () => { const key = replicateKeyInput.value.trim(); if (key) { localStorage.setItem('replicateApiKey', key); apiKeys.replicate = key; replicateStatus.textContent = 'Replicate Token Saved!'; setTimeout(() => { replicateStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000); updateSourceOptions(); } else { alert('कृपया Replicate API Token डालें।'); } });
-    removeReplicateBtn.addEventListener('click', () => { localStorage.removeItem('replicateApiKey'); apiKeys.replicate = ''; replicateKeyInput.value = ''; replicateStatus.textContent = 'Replicate Token Removed!'; setTimeout(() => replicateStatus.textContent = '', 2000); updateSourceOptions(); });
 
     // Pexels Listeners
     savePexelsBtn.addEventListener('click', () => {const key = pexelsKeyInput.value.trim();if (key) {localStorage.setItem('pexelsApiKey', key);apiKeys.pexels = key;pexelsStatus.textContent = 'Pexels Key Saved!';setTimeout(() => { pexelsStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000);updateSourceOptions();} else { alert('कृपया Pexels API Key डालें।'); }});
@@ -372,86 +323,123 @@ document.addEventListener('DOMContentLoaded', () => {
     removeGoogleBtn.addEventListener('click', () => {localStorage.removeItem('googleApiKey');localStorage.removeItem('googleCxId');apiKeys.google = '';apiKeys.googleCx = '';googleKeyInput.value = '';googleCxInput.value = '';googleStatus.textContent = 'Google Keys Removed!';setTimeout(() => googleStatus.textContent = '', 2000);updateSourceOptions();});
 
     // Hugging Face Listeners
-    saveHuggingFaceBtn.addEventListener('click', () => { const key = huggingFaceKeyInput.value.trim(); if (key) { localStorage.setItem('huggingfaceApiKey', key); apiKeys.huggingface = key; huggingFaceStatus.textContent = 'Hugging Face Token Saved!'; setTimeout(() => { huggingFaceStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000); updateSourceOptions(); } else { alert('कृपया Hugging Face API Token डालें।'); } });
-    removeHuggingFaceBtn.addEventListener('click', () => { localStorage.removeItem('huggingfaceApiKey'); apiKeys.huggingface = ''; huggingFaceKeyInput.value = ''; huggingFaceStatus.textContent = 'Hugging Face Token Removed!'; setTimeout(() => huggingFaceStatus.textContent = '', 2000); updateSourceOptions(); });
+    saveHuggingFaceBtn.addEventListener('click', () => {
+        const key = huggingFaceKeyInput.value.trim();
+        if (key) {
+            localStorage.setItem('huggingfaceApiKey', key);
+            apiKeys.huggingface = key;
+            huggingFaceStatus.textContent = 'Hugging Face Token Saved!';
+            setTimeout(() => { 
+                huggingFaceStatus.textContent = ''; 
+                apiModal.classList.remove('active');
+            }, 2000);
+            updateSourceOptions();
+        } else {
+            alert('कृपया Hugging Face API Token डालें।');
+        }
+    });
 
-    // --- Search Logic ---
+    removeHuggingFaceBtn.addEventListener('click', () => {
+        localStorage.removeItem('huggingfaceApiKey');
+        apiKeys.huggingface = '';
+        huggingFaceKeyInput.value = '';
+        huggingFaceStatus.textContent = 'Hugging Face Token Removed!';
+        setTimeout(() => huggingFaceStatus.textContent = '', 2000);
+        updateSourceOptions();
+    });
+
+    // --- Search and Display Logic ---
+    form.addEventListener('submit', (e) => { 
+        e.preventDefault();
+        const prompts = promptTextarea.value.trim().split('\n').map(p => p.trim()).filter(p => p.length > 0);
+        if (prompts.length > 0) {
+            performSearch(prompts);
+        } else {
+            showMessage("कृपया खोजने के लिए कम से कम एक प्रॉम्प्ट डालें।");
+        }
+    });
+
+    async function performSearch(prompts) {
+        resultsContainer.innerHTML = '';
+        messageDiv.textContent = '';
+        homePlaceholder.style.display = 'none';
+        allImagesData = [];
+        const imageCount = imageCountSelect.value;
+        
+        const searchPromises = prompts.map(query => {
+            const resultBox = document.createElement('div');
+            resultBox.className = 'result-box';
+            resultBox.dataset.prompt = query;
+            resultBox.innerHTML = `
+                <button class="close-box-btn" title="इस बॉक्स को बंद करें">X</button>
+                <div class="result-box-header">
+                    <h3 class="result-box-title">"${query}"</h3>
+                    <button class="select-all-btn">सभी चुनें</button>
+                    <button class="download-zip-btn">चुनी हुई Zip डाउनलोड करें</button>
+                </div>
+                <div class="image-grid"></div>
+                <p class="message result-message"></p>
+            `;
+            resultsContainer.appendChild(resultBox);
+            const imageGrid = resultBox.querySelector('.image-grid');
+            const resultMessage = resultBox.querySelector('.result-message');
+            resultBox.querySelector('.close-box-btn').addEventListener('click', () => resultBox.remove());
+            resultBox.querySelector('.select-all-btn').addEventListener('click', (e) => toggleSelectAll(resultBox, e.target));
+            resultBox.querySelector('.download-zip-btn').addEventListener('click', (e) => downloadBoxAsZip(resultBox, e.target));
+            
+            return fetchAndDisplay(query, imageGrid, resultMessage, imageCount);
+        });
+
+        await Promise.all(searchPromises);
+    }
+    
     async function fetchAndDisplay(query, targetGrid, targetMessage, count) {
         const source = sourceSelect.value;
         let items = [];
         let errorMsg = null;
-        
-        let loadingMessage = "तस्वीरें खोजी जा रही हैं...";
-        if (['replicate', 'huggingface', 'deepai'].includes(source)) {
-            loadingMessage = "AI तस्वीरें बना रहा है, कृपया इंतज़ार करें...";
-        }
-        targetMessage.textContent = loadingMessage;
+
+        targetMessage.textContent = source === 'huggingface' ? "तस्वीर बनाई जा रही है (इसमें समय लग सकता है)..." : "तस्वीरें खोजी जा रही हैं...";
 
         try {
-             if (source === 'deepai' && apiKeys.deepai) {
-                const response = await fetch("https://api.deepai.org/api/text2img", {
-                    method: 'POST',
-                    headers: { 'api-key': apiKeys.deepai, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: query }),
-                });
-                if (!response.ok) throw new Error(`DeepAI Error: ${response.statusText}`);
-                const data = await response.json();
-                items = [{ generated: true, imgSrc: data.output_url, altText: query, downloadUrl: data.output_url, author: 'DeepAI' }];
-            } else if (source === 'replicate' && apiKeys.replicate) {
-                 const startResponse = await fetch(`${PROXY_URL}https://api.replicate.com/v1/predictions`, {
-                    method: "POST",
-                    headers: { "Authorization": `Token ${apiKeys.replicate}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        version: "ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4",
-                        input: { prompt: query, num_outputs: 4 },
-                    }),
-                });
-
-                if (!startResponse.ok) throw new Error(`Replicate API Error: ${startResponse.statusText}`);
-                let prediction = await startResponse.json();
-
-                if (prediction.urls && prediction.urls.get) {
-                    while (prediction.status !== "succeeded" && prediction.status !== "failed") {
-                        await new Promise(resolve => setTimeout(resolve, 2500));
-                        const getResponse = await fetch(`${PROXY_URL}${prediction.urls.get}`, {
-                            headers: { "Authorization": `Token ${apiKeys.replicate}` }
-                        });
-                        prediction = await getResponse.json();
-                    }
-                } else {
-                    throw new Error("Replicate API response is missing URLs.");
-                }
-
-                if (prediction.status === "failed") throw new Error(`Replicate prediction failed: ${prediction.error}`);
-
-                items = (prediction.output || []).map(url => ({
-                    generated: true, imgSrc: url, altText: query, downloadUrl: url, author: `Replicate (SDXL)`
-                }));
-            } else if (source === 'huggingface' && apiKeys.huggingface) {
-                const hfUrl = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
-                const response = await fetch(`${PROXY_URL}${hfUrl}`, {
-                    method: "POST", headers: { "Authorization": `Bearer ${apiKeys.huggingface}` }, body: JSON.stringify({ inputs: query })
-                });
-                if (!response.ok) throw new Error(`Hugging Face Error: ${response.statusText}`);
-                const blob = await response.blob();
-                const objectURL = URL.createObjectURL(blob);
-                items = [{ generated: true, imgSrc: objectURL, altText: query, downloadUrl: objectURL, author: `Hugging Face (SDXL)` }];
-            } else if (source === 'pexels' && apiKeys.pexels) {
+            if (source === 'pexels' && apiKeys.pexels) {
+                const orientation = orientationSelect.value;
                 let url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=1&per_page=${count}`;
-                if (orientationSelect.value) url += `&orientation=${orientationSelect.value}`;
+                if (orientation) url += `&orientation=${orientation}`;
                 const response = await fetch(url, { headers: { Authorization: apiKeys.pexels } });
-                if (!response.ok) throw new Error('Pexels API Error');
+                if (!response.ok) throw new Error(`Pexels API Error: ${response.statusText}`);
                 const data = await response.json();
                 items = data.photos;
             } else if (source === 'google' && apiKeys.google) {
-                let url = `https://www.googleapis.com/customsearch/v1?key=${apiKeys.google}&cx=${apiKeys.googleCx}&q=${encodeURIComponent(query)}&searchType=image&num=${Math.min(count, 10)}`;
-                if (googleSizeSelect.value) url += `&imgSize=${googleSizeSelect.value}`;
+                const googleCount = Math.min(count, 10);
+                let url = `https://www.googleapis.com/customsearch/v1?key=${apiKeys.google}&cx=${apiKeys.googleCx}&q=${encodeURIComponent(query)}&searchType=image&start=1&num=${googleCount}`;
                 if (colorSelect.value) url += `&imgColorType=${colorSelect.value}`;
                 if (typeSelect.value) url += `&imgType=${typeSelect.value}`;
+                if (googleSizeSelect.value) url += `&imgSize=${googleSizeSelect.value}`;
                 const response = await fetch(url);
-                if (!response.ok) throw new Error('Google API Error');
+                if (!response.ok) throw new Error(`Google API Error: ${response.statusText}`);
                 const data = await response.json();
                 items = data.items;
+            } else if (source === 'huggingface' && apiKeys.huggingface) {
+                const MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0";
+                const response = await fetch(`https://api-inference.huggingface.co/models/${MODEL_ID}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKeys.huggingface}`
+                    },
+                    body: JSON.stringify({ inputs: query })
+                });
+
+                if (!response.ok) throw new Error(`Hugging Face API Error: ${response.statusText}`);
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
+                items = [{ // Create a fake item structure to match the others
+                    generated: true,
+                    imgSrc: objectURL,
+                    altText: query,
+                    downloadUrl: objectURL,
+                    author: `Generated by ${MODEL_ID}`
+                }];
             } else {
                 errorMsg = "कृपया सेटिंग्स में जाकर इस स्रोत के लिए API Keys डालें।";
             }
@@ -459,74 +447,113 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             errorMsg = `${source} से डेटा लोड करने में समस्या हुई। अपनी Key और इंटरनेट कनेक्शन जांचें।`;
         }
-        
+
         targetMessage.textContent = '';
-        if (errorMsg) { targetMessage.textContent = errorMsg; return; }
-        if (!items || items.length === 0) { targetMessage.textContent = `'${query}' के लिए कोई परिणाम नहीं मिला।`; return; }
+        if (errorMsg) {
+            targetMessage.textContent = errorMsg;
+            return;
+        }
+        if (!items || items.length === 0) {
+            targetMessage.textContent = `'${query}' के लिए कोई परिणाम नहीं मिला।`;
+            return;
+        }
         displayImages(items, source, targetGrid);
     }
 
-    // --- Search and Display Logic ---
-    form.addEventListener('submit', (e) => { 
-        e.preventDefault();
-        const prompts = promptTextarea.value.trim().split('\n').map(p => p.trim()).filter(p => p.length > 0);
-        if (prompts.length > 0) { performSearch(prompts); } else { showMessage("कृपया खोजने के लिए कम से कम एक प्रॉम्प्ट डालें।"); }
-    });
-
-    async function performSearch(prompts) {
-        resultsContainer.innerHTML = ''; messageDiv.textContent = ''; homePlaceholder.style.display = 'none'; allImagesData = [];
-        const imageCount = imageCountSelect.value;
-        const searchPromises = prompts.map(query => {
-            const resultBox = document.createElement('div');
-            resultBox.className = 'result-box'; resultBox.dataset.prompt = query;
-            resultBox.innerHTML = `<button class="close-box-btn" title="इस बॉक्स को बंद करें">X</button><div class="result-box-header"><h3 class="result-box-title">"${query}"</h3><button class="select-all-btn">सभी चुनें</button><button class="download-zip-btn">चुनी हुई Zip डाउनलोड करें</button></div><div class="image-grid"></div><p class="message result-message"></p>`;
-            resultsContainer.appendChild(resultBox);
-            const imageGrid = resultBox.querySelector('.image-grid'); const resultMessage = resultBox.querySelector('.result-message');
-            resultBox.querySelector('.close-box-btn').addEventListener('click', () => resultBox.remove());
-            resultBox.querySelector('.select-all-btn').addEventListener('click', (e) => toggleSelectAll(resultBox, e.target));
-            resultBox.querySelector('.download-zip-btn').addEventListener('click', (e) => downloadBoxAsZip(resultBox, e.target));
-            return fetchAndDisplay(query, imageGrid, resultMessage, imageCount);
-        });
-        await Promise.all(searchPromises);
-    }
-    
     function displayImages(items, source, targetGrid) {
         items.forEach(item => {
             const data = {};
-            if (item.generated) { data.imgSrc = item.imgSrc; data.author = item.author; data.downloadUrl = item.downloadUrl; data.downloadAttr = 'download'; data.altText = item.altText; } 
-            else if (source === 'pexels') { data.imgSrc = item.src.large; data.author = `By: ${item.photographer}`; data.downloadUrl = item.src.original; data.downloadAttr = 'download'; data.altText = item.alt; } 
-            else { if (!item.link) return; data.imgSrc = item.link; data.author = item.displayLink; data.downloadUrl = item.link; data.downloadAttr = ''; data.altText = item.title; }
-            const currentId = allImagesData.length; data.id = currentId; allImagesData.push(data);
-            const card = document.createElement('div'); card.className = 'image-card'; card.dataset.id = currentId; card.dataset.downloadUrl = data.downloadUrl;
-            card.innerHTML = `<input type="checkbox" class="select-checkbox" title="इस तस्वीर को चुनें"><img src="${data.imgSrc}" alt="${data.altText}" loading="lazy" onerror="this.parentElement.style.display='none'">`;
-            card.querySelector('img').addEventListener('click', () => openPreview(currentId)); card.querySelector('.select-checkbox').addEventListener('click', (e) => e.stopPropagation()); targetGrid.appendChild(card);
+            if (item.generated) { // Hugging Face case
+                data.imgSrc = item.imgSrc;
+                data.author = item.author;
+                data.downloadUrl = item.downloadUrl;
+                data.downloadAttr = 'download';
+                data.altText = item.altText;
+            } else if (source === 'pexels') {
+                data.imgSrc = item.src.large;
+                data.author = `By: ${item.photographer}`;
+                data.downloadUrl = item.src.original;
+                data.downloadAttr = 'download';
+                data.altText = item.alt;
+            } else { // Google case
+                if (!item.link) return;
+                data.imgSrc = item.link;
+                data.author = item.displayLink;
+                data.downloadUrl = item.link;
+                data.downloadAttr = '';
+                data.altText = item.title;
+            }
+
+            const currentId = allImagesData.length;
+            data.id = currentId;
+            allImagesData.push(data);
+
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.dataset.id = currentId;
+            card.dataset.downloadUrl = data.downloadUrl;
+            card.innerHTML = `
+                <input type="checkbox" class="select-checkbox" title="इस तस्वीर को चुनें">
+                <img src="${data.imgSrc}" alt="${data.altText}" loading="lazy" onerror="this.parentElement.style.display='none'">
+            `;
+            card.querySelector('img').addEventListener('click', () => openPreview(currentId));
+            card.querySelector('.select-checkbox').addEventListener('click', (e) => e.stopPropagation());
+            targetGrid.appendChild(card);
         });
     }
 
-    function showMessage(msg) { resultsContainer.innerHTML = ''; messageDiv.textContent = msg; homePlaceholder.style.display = 'none'; }
-    function toggleSelectAll(resultBox, btn) { const checkboxes = resultBox.querySelectorAll('.select-checkbox'); const isCurrentlyAllSelected = Array.from(checkboxes).every(cb => cb.checked); checkboxes.forEach(cb => { cb.checked = !isCurrentlyAllSelected; }); btn.textContent = isCurrentlyAllSelected ? 'सभी चुनें' : 'सभी हटाएं'; }
+    function showMessage(msg) {
+        resultsContainer.innerHTML = '';
+        messageDiv.textContent = msg;
+        homePlaceholder.style.display = 'none';
+    }
+
+    function toggleSelectAll(resultBox, btn) {
+        const checkboxes = resultBox.querySelectorAll('.select-checkbox');
+        const isCurrentlyAllSelected = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => { cb.checked = !isCurrentlyAllSelected; });
+        btn.textContent = isCurrentlyAllSelected ? 'सभी चुनें' : 'सभी हटाएं';
+    }
     
     async function downloadBoxAsZip(resultBox, btn) {
-        const promptText = resultBox.dataset.prompt; const filename = promptText.replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '') + '.zip';
+        const promptText = resultBox.dataset.prompt;
+        const filename = promptText.replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '') + '.zip';
         const checkedBoxes = resultBox.querySelectorAll('.select-checkbox:checked');
         if (checkedBoxes.length === 0) { alert('कृपया डाउनलोड करने के लिए इस बॉक्स में कम से कम एक तस्वीर चुनें।'); return; }
-        const btnOriginalText = btn.textContent; btn.textContent = 'ज़िपिंग... (0%)'; btn.disabled = true;
-        const zip = new JSZip(); let downloadedCount = 0;
+        const btnOriginalText = btn.textContent;
+        btn.textContent = 'ज़िपिंग... (0%)';
+        btn.disabled = true;
+        const zip = new JSZip();
+        let downloadedCount = 0;
         const fetchPromises = Array.from(checkedBoxes).map(async (box, index) => {
-            const card = box.closest('.image-card'); const url = card.dataset.downloadUrl;
-            let imgFilename = `image-${index + 1}.png`;
+            const card = box.closest('.image-card');
+            const url = card.dataset.downloadUrl;
+            let imgFilename = `image-${index + 1}`;
+            // For blob URLs from Hugging Face, we can assume png or jpg
+            const extension = url.startsWith('blob:') ? '.png' : (url.split('?')[0].split('.').pop() || 'jpg');
+            if (extension.length < 5) { imgFilename += '.' + extension; }
+
             try {
-                const response = await fetch(`${PROXY_URL}${url}`);
+                // Fetch handles both http and blob URLs
+                const response = await fetch(url);
                 if (!response.ok) throw new Error(`Fetch failed`);
                 const blob = await response.blob();
-                zip.file(imgFilename, blob); downloadedCount++; btn.textContent = `ज़िपिंग... (${Math.round((downloadedCount / checkedBoxes.length) * 100)}%)`;
+                zip.file(imgFilename, blob);
+                downloadedCount++;
+                btn.textContent = `ज़िपिंग... (${Math.round((downloadedCount / checkedBoxes.length) * 100)}%)`;
             } catch (error) { console.error(`Download failed for ${url}:`, error); zip.file(`failed_download_${index+1}.txt`, `Could not download from URL: ${url}`); }
         });
         await Promise.all(fetchPromises);
         zip.generateAsync({ type: "blob" }).then(function(content) {
-            const link = document.createElement('a'); link.href = URL.createObjectURL(content); link.download = filename;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            URL.revokeObjectURL(link.href); btn.textContent = btnOriginalText; btn.disabled = false;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            btn.textContent = btnOriginalText;
+            btn.disabled = false;
         });
     }
 
@@ -534,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openPreview(id) {const data = allImagesData[id];if (!data) return;previewImg.src = data.imgSrc;previewInfo.textContent = `Source: ${data.author}`;previewDownloadBtn.href = data.downloadUrl;data.downloadAttr === 'download' ? previewDownloadBtn.setAttribute('download', `image_${id}.png`) : previewDownloadBtn.removeAttribute('download');previewShareBtn.onclick = () => shareImage(data.downloadUrl, data.altText);previewOverlay.classList.add('show');loadRelatedImages();}
     function closePreview() { previewOverlay.classList.remove('show'); }
     function loadRelatedImages() {relatedImagesContainer.innerHTML = '';const shuffled = [...allImagesData].sort(() => 0.5 - Math.random()).slice(0, 6);shuffled.forEach(data => {const img = document.createElement('img');img.src = data.imgSrc;img.addEventListener('click', () => openPreview(data.id));relatedImagesContainer.appendChild(img);});}
-    async function shareImage(url, text) { try { const response = await fetch(`${PROXY_URL}${url}`); const blob = await response.blob(); const file = new File([blob], 'image.png', { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Check out this image!', text: text, }); } else { throw new Error('Cannot share files.'); } } catch (err) { console.error("Share failed:", err); navigator.clipboard.writeText(url).then(() => { alert('Image link copied to clipboard!'); }); } }
+    function shareImage(url, text) {if (navigator.share) {navigator.share({ title: 'Check out this image!', text: text, url: url }).catch(console.error);} else {navigator.clipboard.writeText(url).then(() => { alert('Image link copied to clipboard!'); });}}
     previewCloseBtn.addEventListener('click', closePreview);previewOverlay.addEventListener('click', (e) => { if (e.target === previewOverlay) closePreview(); });
 
     // --- Initial Load ---
