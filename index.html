@@ -110,6 +110,7 @@
             </form>
             <div class="filters">
                 <select id="source-select">
+                    <option value="deepai">स्रोत: DeepAI (Free)</option>
                     <option value="replicate">स्रोत: Replicate.com</option>
                     <option value="huggingface">स्रोत: Hugging Face</option>
                     <option value="google">स्रोत: Google</option>
@@ -138,6 +139,18 @@
     <div class="modal-overlay" id="api-modal">
         <div class="modal-content">
             <h2>API Key सेटिंग्स</h2>
+             <div class="modal-section">
+                <h3>DeepAI Settings (Free)</h3>
+                <div class="input-group">
+                    <label for="deepai-key">DeepAI API Key</label>
+                    <input type="password" id="deepai-key" placeholder="DeepAI की Key यहाँ डालें">
+                </div>
+                <div class="modal-actions">
+                    <button id="save-deepai-btn" class="save-btn">सेव करें</button>
+                    <button id="remove-deepai-btn" class="remove-btn">Remove Key</button>
+                </div>
+                <p id="deepai-status" class="status-text"></p>
+            </div>
             <div class="modal-section">
                 <h3>Replicate.com Settings</h3>
                 <div class="input-group">
@@ -196,7 +209,7 @@
     
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // --- THIS IS THE PROXY FIX ---
+    // Using a CORS proxy to bypass browser security for API calls from a local file.
     const PROXY_URL = 'https://thingproxy.freeboard.io/fetch/';
 
     // --- PWA Service Worker Registration ---
@@ -226,6 +239,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeNav = document.getElementById('close-nav');
     const settingsBtn = document.getElementById('settings-btn');
     const apiModal = document.getElementById('api-modal');
+
+    // DeepAI Elements
+    const deepaiKeyInput = document.getElementById('deepai-key');
+    const saveDeepaiBtn = document.getElementById('save-deepai-btn');
+    const removeDeepaiBtn = document.getElementById('remove-deepai-btn');
+    const deepaiStatus = document.getElementById('deepai-status');
 
     // Replicate Elements
     const replicateKeyInput = document.getElementById('replicate-key');
@@ -262,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const relatedImagesContainer = document.getElementById('related-images-container');
 
     // App State
-    let apiKeys = { pexels: '', google: '', googleCx: '', huggingface: '', replicate: '' };
+    let apiKeys = { pexels: '', google: '', googleCx: '', huggingface: '', replicate: '', deepai: '' };
     let allImagesData = [];
 
     // --- UI Navigation ---
@@ -289,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const source = sourceSelect.value;
         const isGoogle = source === 'google';
         const isPexels = source === 'pexels';
-        
+        const isAi = ['replicate', 'huggingface', 'deepai'].includes(source);
+
         document.querySelectorAll('.google-filter, #google-size-select').forEach(f => f.style.display = isGoogle ? 'block' : 'none');
         orientationSelect.style.display = isPexels ? 'block' : 'none';
         imageCountSelect.style.display = (isGoogle || isPexels) ? 'block' : 'none';
@@ -297,13 +317,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- API Key Management ---
     function loadApiKeys() {
-        // Load keys from localStorage. No hardcoded keys.
+        // Load keys from localStorage. This is a secure way to store user-specific keys.
+        apiKeys.deepai = localStorage.getItem('deepaiApiKey') || '';
         apiKeys.replicate = localStorage.getItem('replicateApiKey') || '';
         apiKeys.huggingface = localStorage.getItem('huggingfaceApiKey') || '';
         apiKeys.pexels = localStorage.getItem('pexelsApiKey') || '';
         apiKeys.google = localStorage.getItem('googleApiKey') || '';
         apiKeys.googleCx = localStorage.getItem('googleCxId') || '';
 
+        deepaiKeyInput.value = apiKeys.deepai;
         replicateKeyInput.value = apiKeys.replicate;
         huggingFaceKeyInput.value = apiKeys.huggingface;
         pexelsKeyInput.value = apiKeys.pexels;
@@ -312,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateSourceOptions();
         
-        // If no keys are set, prompt the user to add them.
+        // If no keys are set at all, prompt the user to add them.
         const anyKeyReady = Object.values(apiKeys).some(key => !!key);
         if (!anyKeyReady) {
             setTimeout(() => apiModal.classList.add('active'), 500);
@@ -320,6 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function updateSourceOptions() {
+        document.querySelector('option[value="deepai"]').disabled = !apiKeys.deepai;
         document.querySelector('option[value="replicate"]').disabled = !apiKeys.replicate;
         document.querySelector('option[value="huggingface"]').disabled = !apiKeys.huggingface;
         document.querySelector('option[value="pexels"]').disabled = !apiKeys.pexels;
@@ -331,6 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         sourceSelect.dispatchEvent(new Event('change'));
     }
+
+    // DeepAI Listeners
+    saveDeepaiBtn.addEventListener('click', () => { const key = deepaiKeyInput.value.trim(); if (key) { localStorage.setItem('deepaiApiKey', key); apiKeys.deepai = key; deepaiStatus.textContent = 'DeepAI Key Saved!'; setTimeout(() => { deepaiStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000); updateSourceOptions(); } else { alert('कृपया DeepAI API Key डालें।'); } });
+    removeDeepaiBtn.addEventListener('click', () => { localStorage.removeItem('deepaiApiKey'); apiKeys.deepai = ''; deepaiKeyInput.value = ''; deepaiStatus.textContent = 'DeepAI Key Removed!'; setTimeout(() => deepaiStatus.textContent = '', 2000); updateSourceOptions(); });
 
     // Replicate Listeners
     saveReplicateBtn.addEventListener('click', () => { const key = replicateKeyInput.value.trim(); if (key) { localStorage.setItem('replicateApiKey', key); apiKeys.replicate = key; replicateStatus.textContent = 'Replicate Token Saved!'; setTimeout(() => { replicateStatus.textContent = ''; apiModal.classList.remove('active'); }, 2000); updateSourceOptions(); } else { alert('कृपया Replicate API Token डालें।'); } });
@@ -355,13 +382,22 @@ document.addEventListener('DOMContentLoaded', () => {
         let errorMsg = null;
         
         let loadingMessage = "तस्वीरें खोजी जा रही हैं...";
-        if (source === 'huggingface' || source === 'replicate') {
-            loadingMessage = "AI तस्वीरें बना रहा है, कृपया 15-30 सेकंड इंतज़ार करें...";
+        if (['replicate', 'huggingface', 'deepai'].includes(source)) {
+            loadingMessage = "AI तस्वीरें बना रहा है, कृपया इंतज़ार करें...";
         }
         targetMessage.textContent = loadingMessage;
 
         try {
-            if (source === 'replicate' && apiKeys.replicate) {
+             if (source === 'deepai' && apiKeys.deepai) {
+                const response = await fetch("https://api.deepai.org/api/text2img", {
+                    method: 'POST',
+                    headers: { 'api-key': apiKeys.deepai, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: query }),
+                });
+                if (!response.ok) throw new Error(`DeepAI Error: ${response.statusText}`);
+                const data = await response.json();
+                items = [{ generated: true, imgSrc: data.output_url, altText: query, downloadUrl: data.output_url, author: 'DeepAI' }];
+            } else if (source === 'replicate' && apiKeys.replicate) {
                  const startResponse = await fetch(`${PROXY_URL}https://api.replicate.com/v1/predictions`, {
                     method: "POST",
                     headers: { "Authorization": `Token ${apiKeys.replicate}`, "Content-Type": "application/json" },
@@ -480,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = box.closest('.image-card'); const url = card.dataset.downloadUrl;
             let imgFilename = `image-${index + 1}.png`;
             try {
-                // Using proxy for downloading cross-origin images to put in zip
                 const response = await fetch(`${PROXY_URL}${url}`);
                 if (!response.ok) throw new Error(`Fetch failed`);
                 const blob = await response.blob();
